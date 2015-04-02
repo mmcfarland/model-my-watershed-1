@@ -28,12 +28,12 @@
         state=directory
 
 - name: Configure application
-  copy: content={{ item.content }}
-        dest={{ app_config_home }}/{{ item.file }}
+  copy: content={{ item.value }}
+        dest={{ app_config_home }}/{{ item.key }}
         owner=root
         group=mmw
         mode=0750
-  with_items: app_config
+  with_dict: app_config
   notify:
     - Restart mmw-app
 
