@@ -15,7 +15,9 @@ var ResultCollection = Backbone.Collection.extend({
     model: ResultModel
 });
 
-var ProjectModel = Backbone.Model.extend({});
+var ProjectModel = Backbone.Model.extend({
+    url: '/api/modeling/projects'
+});
 
 var ScenarioModel = Backbone.Model.extend({
     initialize: function() {

@@ -3,8 +3,8 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from rest_framework.response import Response
-from rest_framework import decorators
-from rest_framework.permissions import AllowAny
+from rest_framework import decorators, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
@@ -13,8 +13,93 @@ from celery import chain
 
 from apps.core.models import Job
 from apps.core.task_helpers import save_job_error, save_job_result
+from apps.modeling.serializers import ProjectSerializer, ScenarioSerializer
 from apps.modeling import tasks
-from apps.modeling.models import District
+from apps.modeling.models import District, Project, Scenario
+
+
+@decorators.api_view(['GET', 'POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def project_list(request):
+    """List all projects of a given user"""
+    if request.method == 'GET':
+        projects = Project.objects.filter(user=request.user)
+        serializer = ProjectSerializer(projects, many=True)
+
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ProjectSerializer(data=request.data,
+                                       context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@decorators.api_view(['DELETE', 'GET', 'PUT'])
+@decorators.permission_classes((IsAuthenticated, ))
+def project_detail(request, proj_id):
+    """Retrieve, update or delete a project"""
+    try:
+        project = Project.objects.get(user=request.user, id=proj_id)
+    except Project.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ProjectSerializer(project, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        project.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@decorators.api_view(['POST'])
+@decorators.permission_classes((IsAuthenticated, ))
+def scenario_list(request):
+    """"""
+    if request.method == 'POST':
+        serializer = ScenarioSerializer(data=request.data,
+                                        context={"request": request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@decorators.api_view(['DELETE', 'GET', 'PUT'])
+@decorators.permission_classes((IsAuthenticated, ))
+def scenario_detail(request, scen_id):
+    """Retrieve, update or delete a project"""
+    try:
+        scenario = Scenario.objects.filter(user=request.user, id=scen_id)
+    except Scenario.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = ScenarioSerializer(scenario)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = ScenarioSerializer(scenario, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        scenario.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @decorators.api_view(['POST'])

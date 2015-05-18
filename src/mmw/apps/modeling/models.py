@@ -74,23 +74,22 @@ class Scenario(models.Model):
 
     name = models.CharField(
         max_length=255)
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, related_name='scenarios')
     current_condition = models.BooleanField(
         default=False,
         help_text='A special type of scenario without modification abilities')
-    # This could be a JSONField type, for which libraries exist, but I
-    # don't want to add the dependency if we're not going to index/query for
-    # values within the content.
     modifications = models.TextField(
+        null=True,
         help_text='Serialized JSON representation of this scenarios ' +
                   'applied modification, with respect to the model package')
-    # Don't need to rerun the model if the hash matches the results hash
     modification_hash = models.CharField(
         max_length=255,
+        null=True,
         help_text='A hash of the values for modifications & inputs to ' +
                   'compare to the existing model results, to determine if ' +
                   'the persisted result apply to the current values')
     results = models.TextField(
+        null=True,
         help_text='Serialized JSON representation of the model results')
 
     def __unicode__(self):

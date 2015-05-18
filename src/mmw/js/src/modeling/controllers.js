@@ -37,25 +37,17 @@ var ModelingController = {
                 name: 'Current',
                 currentConditions: true
             }),
-            scenario1 = new models.ScenarioModel({
-                name: 'Scenario 1'
-            }),
-            scenario2 = new models.ScenarioModel({
-                name: 'Flood Scenario'
-            }),
             project = new models.ProjectModel({
                 name: 'My Project',
                 createdAt: Date.now(),
                 areaOfInterest: App.map.get('areaOfInterest'),
-                activeScenarioSlug: 'scenario-1',
+                activeScenarioSlug: 'current',
                 modelPackage: new models.ModelPackageModel({
                     name: 'TR-55',
                     taskModel: taskModel
                 }),
                 scenarios: new models.ScenariosCollection([
-                    currentConditions,
-                    scenario1,
-                    scenario2
+                    currentConditions
                 ])
             });
 
@@ -69,6 +61,10 @@ var ModelingController = {
 
         App.rootView.subHeaderRegion.show(modelingHeader);
         App.rootView.footerRegion.show(modelingResultsWindow);
+
+        project.on('change', function() {
+            console.log(arguments);
+        });
     },
 
     modelCleanUp: function() {
